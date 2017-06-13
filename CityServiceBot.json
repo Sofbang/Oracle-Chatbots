@@ -1,0 +1,325 @@
+{
+  "name" : "CityServiceBot",
+  "description" : "Metropolis City Services Bot. Integrated with NYC MTA and San Jose services.",
+  "type" : "USER",
+  "intents" : [ {
+    "name" : "Schedule",
+    "paramsList" : [ {
+      "entity" : {
+        "name" : "TransitType",
+        "type" : "ENUMVALUES",
+        "enumValues" : "bus{buses},subway{metro}",
+        "ruleParameters" : null,
+        "parentEntity" : null,
+        "patternExpression" : null
+      },
+      "name" : "TransitType",
+      "isRequired" : true,
+      "required" : true
+    } ],
+    "type" : "NLPIntent"
+  }, {
+    "name" : "Service",
+    "paramsList" : [ {
+      "entity" : {
+        "name" : "GeoPoints",
+        "type" : "ENUMVALUES",
+        "enumValues" : "North{up:uptown},South{downtown},East,West",
+        "ruleParameters" : null,
+        "parentEntity" : null,
+        "patternExpression" : null
+      },
+      "name" : "GeoPoints",
+      "isRequired" : true,
+      "required" : true
+    }, {
+      "entity" : {
+        "name" : "SubwayRoutes",
+        "type" : "ENUMVALUES",
+        "enumValues" : "1,2,3,4,5,6,7,A,C,E,B,D,F,M,G,J,Z,L,S,N,Q,R,W",
+        "ruleParameters" : null,
+        "parentEntity" : null,
+        "patternExpression" : null
+      },
+      "name" : "SubwayRoutes",
+      "isRequired" : true,
+      "required" : true
+    }, {
+      "entity" : {
+        "name" : "TransitType",
+        "type" : "ENUMVALUES",
+        "enumValues" : "bus{buses},subway{metro}",
+        "ruleParameters" : null,
+        "parentEntity" : null,
+        "patternExpression" : null
+      },
+      "name" : "TransitType",
+      "isRequired" : true,
+      "required" : true
+    } ],
+    "type" : "NLPIntent"
+  }, {
+    "name" : "Flight Information",
+    "paramsList" : [ ],
+    "type" : "NLPIntent"
+  } ],
+  "entities" : [ {
+    "name" : "SubwayRoutes",
+    "type" : "ENUMVALUES",
+    "enumValues" : "1,2,3,4,5,6,7,A,C,E,B,D,F,M,G,J,Z,L,S,N,Q,R,W",
+    "ruleParameters" : null,
+    "parentEntity" : null,
+    "patternExpression" : null
+  }, {
+    "name" : "TransitType",
+    "type" : "ENUMVALUES",
+    "enumValues" : "bus{buses},subway{metro}",
+    "ruleParameters" : null,
+    "parentEntity" : null,
+    "patternExpression" : null
+  }, {
+    "name" : "GeoPoints",
+    "type" : "ENUMVALUES",
+    "enumValues" : "North{up:uptown},South{downtown},East,West",
+    "ruleParameters" : null,
+    "parentEntity" : null,
+    "patternExpression" : null
+  } ],
+  "dialog" : [ {
+    "metadata" : {
+      "platformVersion" : "1.0"
+    },
+    "main" : true,
+    "name" : "CityServiceBot",
+    "context" : {
+      "variables" : {
+        "transitType" : "TransitType",
+        "iResult" : "nlpresult",
+        "iResult2" : "nlpresult",
+        "rangeStart" : "int"
+      }
+    },
+    "states" : {
+      "setRangeStart" : {
+        "component" : "System.SetVariable",
+        "properties" : {
+          "variable" : "rangeStart",
+          "value" : "0"
+        },
+        "transitions" : { }
+      },
+      "intent" : {
+        "component" : "System.Intent",
+        "properties" : {
+          "variable" : "iResult",
+          "confidence_threshold" : 0.4
+        },
+        "transitions" : {
+          "actions" : {
+            "Service" : "askServiceType",
+            "Schedule" : "askScheduleType",
+            "Flight Information" : "showFlightArrivals",
+            "Intent.None" : "unresolved"
+          }
+        }
+      },
+      "askServiceType" : {
+        "component" : "System.List",
+        "properties" : {
+          "options" : "bus,subway",
+          "prompt" : "What transit service status do you want to check?",
+          "variable" : "transitType"
+        },
+        "transitions" : { }
+      },
+      "serviceStatus" : {
+        "component" : "metropolis.TransitStatus",
+        "properties" : {
+          "serviceType" : "${transitType.value}"
+        },
+        "transitions" : {
+          "actions" : {
+            "hasNext" : "intent2",
+            "complete" : "done"
+          }
+        }
+      },
+      "intent2" : {
+        "component" : "System.Intent",
+        "properties" : {
+          "variable" : "iResult2",
+          "confidence_threshold" : 0.4
+        },
+        "transitions" : {
+          "actions" : {
+            "Service" : "serviceStatus",
+            "Schedule" : "sayTransitStatus2",
+            "Flight Information" : "showFlightArrivals",
+            "Intent.None" : "serviceStatus"
+          }
+        }
+      },
+      "sayTransitStatus2" : {
+        "component" : "metropolis.TransitSchedule",
+        "properties" : {
+          "serviceType" : "${transitType.value}"
+        },
+        "transitions" : {
+          "next" : "serviceStatus"
+        }
+      },
+      "askScheduleType" : {
+        "component" : "System.List",
+        "properties" : {
+          "options" : "bus,subway",
+          "prompt" : "What transit schedule do you want to check?",
+          "variable" : "transitType"
+        },
+        "transitions" : { }
+      },
+      "sayTransitStatus" : {
+        "component" : "metropolis.TransitSchedule",
+        "properties" : {
+          "serviceType" : "${transitType.value}"
+        },
+        "transitions" : {
+          "return" : "done"
+        }
+      },
+      "showFlightArrivals" : {
+        "component" : "metropolis.FlightArrival",
+        "properties" : {
+          "foo" : "hi"
+        },
+        "transitions" : {
+          "actions" : {
+            "hasNext" : "showFlightArrivals",
+            "complete" : "done"
+          }
+        }
+      },
+      "unresolved" : {
+        "component" : "System.Output",
+        "properties" : {
+          "text" : "Hello ${profile.firstName} ! I can assist you with providing the latest information about transit service status, schedule or flight information. How can I help you?"
+        },
+        "transitions" : { }
+      }
+    }
+  } ],
+  "componentServices" : [ {
+    "name" : "MetropolisServices",
+    "url" : "https://ibscustomcomponents-gse00003030.apaas.us6.oraclecloud.com/bots",
+    "headers" : [ ],
+    "credentials" : {
+      "type" : "basic",
+      "username" : "test",
+      "passwordKey" : null
+    }
+  } ],
+  "trainingDataList" : [ {
+    "sentence" : "When metro leaving station?",
+    "intent" : "Schedule",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Metro Schedule",
+    "intent" : "Schedule",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Current bus schedule",
+    "intent" : "Schedule",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Bus schedule",
+    "intent" : "Schedule",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "How would I get to downtown?",
+    "intent" : "Schedule",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Are buses running late? ",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Metro service status.",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "How's service on M?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "What's current status of the bus routes?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "How's bus service today? ",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Any bus delays?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "How's metro status?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "How's metro service?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Any service issues?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Is there any delays on metro?",
+    "intent" : "Service",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "Current status of flight arrival",
+    "intent" : "Flight Information",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "When my flight arrive?",
+    "intent" : "Flight Information",
+    "namedEntities" : [ ]
+  }, {
+    "sentence" : "What is current flight arrival schedule?",
+    "intent" : "Flight Information",
+    "namedEntities" : [ ]
+  } ],
+  "channels" : [ {
+    "name" : "System_Bot_Test",
+    "description" : "Used by the BOT test feature. If it is disabled, the test UI will not work for this BOT.",
+    "enabled" : true,
+    "config" : {
+      "type" : "test"
+    }
+  }, {
+    "name" : "MyTesting",
+    "enabled" : true,
+    "config" : {
+      "type" : "webhook",
+      "webhookUri" : "https://bots-samples-nodejs:3001/chat/bots/FB626908-6569-4555-A5F4-FA6A9789A58E/messages"
+    }
+  }, {
+    "name" : "facebook",
+    "enabled" : true,
+    "config" : {
+      "type" : "facebook"
+    }
+  } ],
+  "settings" : {
+    "createdOn" : "2017-06-03T18:22:29.274Z",
+    "updatedOn" : "2017-06-03T18:22:29.274Z",
+    "links" : null,
+    "settings" : {
+      "Multistage_Pipeline" : true,
+      "Verbose_Output" : false,
+      "Result_Size" : 10,
+      "Pipeline_Output_Size" : 100
+    }
+  }
+}

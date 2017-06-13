@@ -1,0 +1,30 @@
+{
+  "name": "component-service",
+  "version": "1.0.0",
+  "description": "IBS Custom Component service",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "joi": "^10.3.1",
+    "log4js": "^1.1.1",
+    "moment": "^2.18.1",
+    "morgan": "^1.8.1",
+    "request": "^2.81.0",
+    "xml2js": "^0.4.17"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://ssss"
+  },
+  "keywords": [
+    "Chatbot"
+  ],
+  "author": "Serge Leontiev/Oracle",
+  "license": "MIT"
+}
